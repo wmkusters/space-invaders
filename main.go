@@ -60,7 +60,7 @@ func (m model) Init() tea.Cmd {
 type TickMsg time.Time
 
 func tickEvery() tea.Cmd {
-	return tea.Every(time.Second/10, func(t time.Time) tea.Msg {
+	return tea.Every(time.Second/2, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
 }
