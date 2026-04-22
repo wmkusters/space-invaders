@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -19,10 +20,11 @@ type coords struct {
 }
 
 type model struct {
-	ship   int
-	aliens []coords
-	width  int
-	height int
+	ship      int
+	aliens    []coords
+	direction bool
+	width     int
+	height    int
 }
 
 func initialModel() model {
@@ -46,13 +48,21 @@ func initialModel() model {
 	return model{
 		ship:   40,
 		aliens: aliens,
-		width:  80,
-		height: 20,
+		width:  WIDTH,
+		height: HEIGHT,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return tickEvery()
+}
+
+type TickMsg time.Time
+
+func tickEvery() tea.Cmd {
+	return tea.Every(time.Second/10, func(t time.Time) tea.Msg {
+		return TickMsg(t)
+	})
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -71,6 +81,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "space":
 		}
+	case TickMsg:
+		aliens := []coords{}
+		atEdge := false
+		for _, alien := range m.aliens {
+			if alien.x == m.width || alien.x == 0 {
+				atEdge = true
+				m.direction = !m.direction
+				break
+			}
+		}
+		for _, alien := range m.aliens {
+			if m.direction {
+				alien.x--
+			} else {
+				alien.x++
+			}
+			if atEdge {
+				alien.y++
+			}
+			aliens = append(aliens, alien)
+		}
+		m.aliens = aliens
+		return m, tickEvery()
 	}
 	return m, nil
 }
