@@ -8,6 +8,11 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+const (
+	WIDTH  = 80
+	HEIGHT = 20
+)
+
 type coords struct {
 	x int
 	y int
@@ -21,9 +26,26 @@ type model struct {
 }
 
 func initialModel() model {
+	const (
+		startingAliens = 30
+		aliensPerLine  = 10
+		spaceBetween   = 2
+	)
+	aliens := []coords{}
+	sx := WIDTH/2 - (aliensPerLine*spaceBetween)/2
+	x := sx
+	y := 0
+	for i := 1; i <= startingAliens; i++ {
+		aliens = append(aliens, coords{x: x, y: y})
+		x += spaceBetween
+		if i%10 == 0 {
+			y++
+			x = sx
+		}
+	}
 	return model{
 		ship:   40,
-		aliens: []coords{{x: 8, y: 10}},
+		aliens: aliens,
 		width:  80,
 		height: 20,
 	}
@@ -55,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() tea.View {
 	title := "SPACE INVADERS"
 	padding := (m.width - len(title)) / 2
-	s := strings.Repeat(" ", padding) + title + strings.Repeat(" ", padding) + "\n\n"
+	s := "x" + strings.Repeat(" ", padding-2) + title + strings.Repeat(" ", padding) + "x" + "\n\n"
 	lines := []string{}
 
 	// reserve last line for ship
@@ -65,7 +87,7 @@ func (m model) View() tea.View {
 
 	for _, alien := range m.aliens {
 		line := lines[alien.y]
-		line = line[:alien.x] + "%" + line[alien.x+1:]
+		line = line[:alien.x] + "m" + line[alien.x+1:]
 		lines[alien.y] = line
 	}
 	for _, line := range lines {
@@ -79,7 +101,7 @@ func (m model) View() tea.View {
 	if rp > m.width {
 		rp = 0
 	}
-	s += strings.Repeat(" ", lp) + "q" + strings.Repeat(" ", rp)
+	s += strings.Repeat(" ", lp) + "w" + strings.Repeat(" ", rp)
 	s += "\nPress q to quit.\n"
 
 	return tea.NewView(s)
